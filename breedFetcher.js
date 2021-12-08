@@ -1,32 +1,21 @@
-const breedName = process.argv.slice(2);
 const request = require("request");
-const url =  "https://api.thecatapi.com/v1/breeds/search?q=" + breedName;
 
-const fetchBreedInformation = (breedInfo, callback) => {
-  request(url, (error,res,body) => {
-    // convert the strings into objects
-    const data = JSON.parse(body);
-    // assigned the first array in data to firstEntry
-    breedInfo = data[0];
-    let breedDescription = breedInfo.description;
+const fetchBreedDescription = (breedName, callback) => { //async so it needs a callback
+  request(`https://api.thecatapi.com/v1/breeds/search?q=${breedName}`, (error, res, body) => {
     // request fails, so print out the error argument  => edge case
     if (error) {
-      callback(error, null);
-      return;
-    } else if (breedInfo === null) {
-      callback('Error: Breed Not Found', null);
-      return;
+      callback(`Failed to complete request: ${error}`, null);
+    }
+    // convert the strings into object
+    const data = JSON.parse(body);
+    const breedInfo = data[0];
+    if (breedInfo) {
+      callback(null, breedInfo.description);
     } else {
-      // print the description
-      callback(null, breedDescription);
-      return;
+      // assigned the first array in data to firstEntry
+      callback(`Error: ${breedName} Not Found`, null);
     }
   });
 };
 
-// returns undefined not good...
-fetchBreedInformation(breedName, (err, info) => {
-  if (err) {
-    console.log(err);
-  } else console.log(info);
-});
+module.exports = { fetchBreedDescription };
